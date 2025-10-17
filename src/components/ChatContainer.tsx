@@ -52,7 +52,7 @@ const ChatContainer = () => {
           Authorization: `Bearer ${OPENAI_API_KEY}`,
         },
         body: JSON.stringify({
-          model: "gpt-4",
+          model: "gpt-4o-mini",
           messages: [
             { 
               role: "system", 
