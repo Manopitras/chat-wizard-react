@@ -14,8 +14,8 @@ const ChatContainer = () => {
   const messagesEndRef = useRef(null);
   const { toast } = useToast();
 
-  // Chave da API - substitua pela sua chave real
-  const OPENAI_API_KEY = "SUA_CHAVE_API_AQUI";
+  // Chave da API do arquivo .env
+  const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
