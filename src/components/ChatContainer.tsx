@@ -4,6 +4,7 @@ import ChatMessage from "./ChatMessage";
 import ChatInput from "./ChatInput";
 import TypingIndicator from "./TypingIndicator";
 import { useToast } from "@/hooks/use-toast";
+import { OPENAI_API_KEY, OPENAI_API_URL } from "@/config/api"; // ✅ mantém aqui
 
 const ChatContainer = () => {
   const [messages, setMessages] = useState([
@@ -14,8 +15,8 @@ const ChatContainer = () => {
   const messagesEndRef = useRef(null);
   const { toast } = useToast();
 
-  // Chave da API do arquivo .env
-  const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
+  // ❌ remova esta linha duplicada:
+  // const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -25,10 +26,9 @@ const ChatContainer = () => {
     scrollToBottom();
   }, [messages, isTyping]);
 
-  const sendMessageToChatGPT = async (userMessage) => {
+  const sendMessageToChatGPT = async (userMessage: string) => {
     setIsTyping(true);
 
-    // Verifica se a chave da API está configurada
     if (!OPENAI_API_KEY) {
       console.error("API Key não encontrada");
       toast({
@@ -44,15 +44,12 @@ const ChatContainer = () => {
       return;
     }
 
-    console.log("Enviando mensagem para OpenAI...");
-    console.log("API Key presente:", OPENAI_API_KEY ? "Sim" : "Não");
-
     try {
-      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      const response = await fetch(OPENAI_API_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${OPENAI_API_KEY}`
+          Authorization: `Bearer ${OPENAI_API_KEY}`,
         },
         body: JSON.stringify({
           model: "gpt-4",
@@ -72,28 +69,21 @@ const ChatContainer = () => {
         })
       });
 
-      console.log("Status da resposta:", response.status);
-
       if (!response.ok) {
         const errorData = await response.json();
-        console.error("Erro da API:", errorData);
         throw new Error(`Erro ${response.status}: ${errorData.error?.message || "Erro desconhecido"}`);
       }
 
       const data = await response.json();
-      console.log("Resposta recebida com sucesso");
       const botMessage = data.choices[0].message.content;
-
       setMessages(prev => [...prev, { text: botMessage, isUser: false }]);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro detalhado:", error);
       toast({
         title: "Erro ao enviar mensagem",
         description: error.message || "Erro ao conectar com a API",
         variant: "destructive"
       });
-      
-      // Resposta padrão quando há erro
       setMessages(prev => [...prev, { 
         text: `Erro: ${error.message || "Não foi possível processar a mensagem"}`, 
         isUser: false 
@@ -103,7 +93,7 @@ const ChatContainer = () => {
     }
   };
 
-  const handleSendMessage = (message) => {
+  const handleSendMessage = (message: string) => {
     setMessages(prev => [...prev, { text: message, isUser: true }]);
     sendMessageToChatGPT(message);
   };
